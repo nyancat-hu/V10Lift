@@ -53,10 +53,10 @@ public class V10LiftAPI {
     private void startLift(String liftName) {
         if (!DataManager.containsMovingTask(liftName)) {
             Lift lift = DataManager.getLift(liftName);
-            DataManager.addMovingTask(liftName, Bukkit.getScheduler().scheduleSyncRepeatingTask(V10LiftPlugin.getInstance(), new MoveLift(liftName, lift.getSpeed()), lift.getSpeed(), lift.getSpeed()));
+            DataManager.addMovingTask(liftName, Bukkit.getRegionScheduler().runAtFixedRate(V10LiftPlugin.getInstance(), lift.getBlocks().first().getCentorLocation(),new MoveLift(liftName, lift.getSpeed()), lift.getSpeed(), lift.getSpeed()));
         }
     }
-
+//
     /* API methods */
 
     /*
@@ -108,7 +108,7 @@ public class V10LiftAPI {
         }
 
         if (DataManager.containsMovingTask(liftName)) {
-            Bukkit.getScheduler().cancelTask(DataManager.getMovingTask(liftName));
+            DataManager.getMovingTask(liftName).cancel();
             DataManager.removeMovingTask(liftName);
         }
 

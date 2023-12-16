@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.bukkit.Location;
 import tech.sbdevelopment.v10lift.api.runnables.DoorCloser;
 
 import java.util.*;

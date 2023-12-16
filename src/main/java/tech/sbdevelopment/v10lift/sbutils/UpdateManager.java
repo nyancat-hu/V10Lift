@@ -91,146 +91,146 @@ public class UpdateManager {
      * Check for a new version
      */
     public void check() {
-        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            try {
-                BufferedReader in = null;
-                if (type == CheckType.SPIGOT) {
-                    HttpsURLConnection con = (HttpsURLConnection) new URL(String.format(SPIGOT_API, this.resourceID)).openConnection();
-                    con.setRequestMethod("GET");
-                    con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                    in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                } else if (type == CheckType.SBDPLUGINS) {
-                    HttpsURLConnection con = (HttpsURLConnection) new URL(String.format(SBDPLUGINS_API, this.resourceID)).openConnection();
-                    con.setRequestMethod("GET");
-                    con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                    in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                }
-
-                if (in == null) return;
-
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                String version = parser.parse(response.toString()).getAsJsonObject().get(type == CheckType.SPIGOT ? "name" : "version").getAsString();
-                if (version == null) return;
-
-                Version onlineVersion = new Version(version);
-
-                VersionResponse verRes = this.currentVersion.check(onlineVersion);
-
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.versionResponse.accept(verRes, onlineVersion));
-            } catch (IOException | NullPointerException e) {
-                e.printStackTrace();
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.versionResponse.accept(VersionResponse.UNAVAILABLE, null));
-            }
-        });
+//        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+//            try {
+//                BufferedReader in = null;
+//                if (type == CheckType.SPIGOT) {
+//                    HttpsURLConnection con = (HttpsURLConnection) new URL(String.format(SPIGOT_API, this.resourceID)).openConnection();
+//                    con.setRequestMethod("GET");
+//                    con.setRequestProperty("User-Agent", "Mozilla/5.0");
+//
+//                    in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+//                } else if (type == CheckType.SBDPLUGINS) {
+//                    HttpsURLConnection con = (HttpsURLConnection) new URL(String.format(SBDPLUGINS_API, this.resourceID)).openConnection();
+//                    con.setRequestMethod("GET");
+//                    con.setRequestProperty("User-Agent", "Mozilla/5.0");
+//
+//                    in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+//                }
+//
+//                if (in == null) return;
+//
+//                String inputLine;
+//                StringBuilder response = new StringBuilder();
+//                while ((inputLine = in.readLine()) != null) {
+//                    response.append(inputLine);
+//                }
+//                in.close();
+//
+//                String version = parser.parse(response.toString()).getAsJsonObject().get(type == CheckType.SPIGOT ? "name" : "version").getAsString();
+//                if (version == null) return;
+//
+//                Version onlineVersion = new Version(version);
+//
+//                VersionResponse verRes = this.currentVersion.check(onlineVersion);
+//
+//                Bukkit.getScheduler().runTask(this.plugin, () -> this.versionResponse.accept(verRes, onlineVersion));
+//            } catch (IOException | NullPointerException e) {
+//                e.printStackTrace();
+//                Bukkit.getScheduler().runTask(this.plugin, () -> this.versionResponse.accept(VersionResponse.UNAVAILABLE, null));
+//            }
+//        });
     }
 
     public void runUpdate() {
-        File pluginFile = getPluginFile(); // /plugins/XXX.jar
-        if (pluginFile == null) {
-            this.downloadResponse.accept(DownloadResponse.ERROR, null);
-            Bukkit.getLogger().info("Pluginfile is null");
-            return;
-        }
-        File updateFolder = Bukkit.getUpdateFolderFile();
-        if (!updateFolder.exists()) {
-            if (!updateFolder.mkdirs()) {
-                this.downloadResponse.accept(DownloadResponse.ERROR, null);
-                Bukkit.getLogger().info("Updatefolder doesn't exists, and can't be made");
-                return;
-            }
-        }
-        final File updateFile = new File(updateFolder, pluginFile.getName());
-
-        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            ReadableByteChannel channel;
-            try {
-                //https://stackoverflow.com/questions/921262/how-to-download-and-save-a-file-from-internet-using-java
-                int response;
-                InputStream stream;
-                HttpsURLConnection connection;
-                if (type == CheckType.SBDPLUGINS) {
-                    connection = (HttpsURLConnection) new URL(String.format(SBDPLUGINS_DOWNLOAD, this.resourceID)).openConnection();
-
-                    String urlParameters = "license=" + license + "&port=" + Bukkit.getPort();
-                    byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
-                    int postDataLength = postData.length;
-
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setRequestProperty("charset", "utf-8");
-                    connection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-                    connection.setDoOutput(true);
-
-                    DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-                    wr.write(postData);
-                    wr.close();
-                } else {
-                    connection = (HttpsURLConnection) new URL(String.format(SPIGOT_DOWNLOAD, this.resourceID)).openConnection();
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-                }
-
-                response = connection.getResponseCode();
-                stream = connection.getInputStream();
-
-                if (response != 200) {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-
-                    String inputLine;
-                    StringBuilder responsestr = new StringBuilder();
-                    while ((inputLine = in.readLine()) != null) {
-                        responsestr.append(inputLine);
-                    }
-                    in.close();
-
-                    throw new RuntimeException("Download returned status #" + response, new Throwable(responsestr.toString()));
-                }
-
-                channel = Channels.newChannel(stream);
-            } catch (IOException e) {
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.ERROR, null));
-                e.printStackTrace();
-                return;
-            }
-
-            FileChannel fileChannel = null;
-            try {
-                FileOutputStream fosForDownloadedFile = new FileOutputStream(updateFile);
-                fileChannel = fosForDownloadedFile.getChannel();
-
-                fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
-            } catch (IOException e) {
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.ERROR, null));
-                e.printStackTrace();
-                return;
-            } finally {
-                if (channel != null) {
-                    try {
-                        channel.close();
-                    } catch (IOException ioe) {
-                        System.out.println("Error while closing response body channel");
-                    }
-                }
-
-                if (fileChannel != null) {
-                    try {
-                        fileChannel.close();
-                    } catch (IOException ioe) {
-                        System.out.println("Error while closing file channel for downloaded file");
-                    }
-                }
-            }
-
-            Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.DONE, updateFile.getPath()));
-        });
+//        File pluginFile = getPluginFile(); // /plugins/XXX.jar
+//        if (pluginFile == null) {
+//            this.downloadResponse.accept(DownloadResponse.ERROR, null);
+//            Bukkit.getLogger().info("Pluginfile is null");
+//            return;
+//        }
+//        File updateFolder = Bukkit.getUpdateFolderFile();
+//        if (!updateFolder.exists()) {
+//            if (!updateFolder.mkdirs()) {
+//                this.downloadResponse.accept(DownloadResponse.ERROR, null);
+//                Bukkit.getLogger().info("Updatefolder doesn't exists, and can't be made");
+//                return;
+//            }
+//        }
+//        final File updateFile = new File(updateFolder, pluginFile.getName());
+//
+//        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+//            ReadableByteChannel channel;
+//            try {
+//                //https://stackoverflow.com/questions/921262/how-to-download-and-save-a-file-from-internet-using-java
+//                int response;
+//                InputStream stream;
+//                HttpsURLConnection connection;
+//                if (type == CheckType.SBDPLUGINS) {
+//                    connection = (HttpsURLConnection) new URL(String.format(SBDPLUGINS_DOWNLOAD, this.resourceID)).openConnection();
+//
+//                    String urlParameters = "license=" + license + "&port=" + Bukkit.getPort();
+//                    byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
+//                    int postDataLength = postData.length;
+//
+//                    connection.setRequestMethod("GET");
+//                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//                    connection.setRequestProperty("charset", "utf-8");
+//                    connection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+//                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+//                    connection.setDoOutput(true);
+//
+//                    DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+//                    wr.write(postData);
+//                    wr.close();
+//                } else {
+//                    connection = (HttpsURLConnection) new URL(String.format(SPIGOT_DOWNLOAD, this.resourceID)).openConnection();
+//                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+//                }
+//
+//                response = connection.getResponseCode();
+//                stream = connection.getInputStream();
+//
+//                if (response != 200) {
+//                    BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+//
+//                    String inputLine;
+//                    StringBuilder responsestr = new StringBuilder();
+//                    while ((inputLine = in.readLine()) != null) {
+//                        responsestr.append(inputLine);
+//                    }
+//                    in.close();
+//
+//                    throw new RuntimeException("Download returned status #" + response, new Throwable(responsestr.toString()));
+//                }
+//
+//                channel = Channels.newChannel(stream);
+//            } catch (IOException e) {
+//                Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.ERROR, null));
+//                e.printStackTrace();
+//                return;
+//            }
+//
+//            FileChannel fileChannel = null;
+//            try {
+//                FileOutputStream fosForDownloadedFile = new FileOutputStream(updateFile);
+//                fileChannel = fosForDownloadedFile.getChannel();
+//
+//                fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
+//            } catch (IOException e) {
+//                Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.ERROR, null));
+//                e.printStackTrace();
+//                return;
+//            } finally {
+//                if (channel != null) {
+//                    try {
+//                        channel.close();
+//                    } catch (IOException ioe) {
+//                        System.out.println("Error while closing response body channel");
+//                    }
+//                }
+//
+//                if (fileChannel != null) {
+//                    try {
+//                        fileChannel.close();
+//                    } catch (IOException ioe) {
+//                        System.out.println("Error while closing file channel for downloaded file");
+//                    }
+//                }
+//            }
+//
+//            Bukkit.getScheduler().runTask(this.plugin, () -> this.downloadResponse.accept(DownloadResponse.DONE, updateFile.getPath()));
+//        });
     }
 
     private File getPluginFile() {

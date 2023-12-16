@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -39,6 +40,7 @@ public class LiftBlock implements Comparable<LiftBlock> {
     private Boolean open;
     //Used for chests
     public Map<String, Object>[] serializedItemStacks;
+    private Location centorLocation;
 
     /**
      * Create a new liftblock from a block
@@ -51,6 +53,7 @@ public class LiftBlock implements Comparable<LiftBlock> {
         this.y = block.getY();
         this.z = block.getZ();
         this.mat = block.getType();
+        this.centorLocation = block.getLocation();
         if (block.getBlockData() instanceof org.bukkit.block.data.Directional) {
             this.face = ((org.bukkit.block.data.Directional) block.getBlockData()).getFacing();
         }

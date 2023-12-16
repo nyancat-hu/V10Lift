@@ -1,10 +1,10 @@
 # Generic sign texts
-SignText: "[v10lift]"
-DefectText: "&kDefect!"
-DisabledText: "&cDisabled"
-MaintenanceText: "&cMaintenance"
-UpText: "&aup"
-DownText: "&adown"
+SignText: "[电梯]"
+DefectText: "&k损坏!"
+DisabledText: "&c关闭"
+MaintenanceText: "&c维护"
+UpText: "&a上升"
+DownText: "&a下降"
 
 # The change for a lift to get defective. Disabled by default.
 DefectRate: 0.0
@@ -31,5 +31,5 @@ PacketTeleport: false
 
 # The updater checker - It will check for new versions, and install automatically if found.
 UpdateChecker:
-  Enabled: true
+  Enabled: false
   DownloadOnUpdate: true

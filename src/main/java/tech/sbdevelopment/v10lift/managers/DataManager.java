@@ -1,5 +1,6 @@
 package tech.sbdevelopment.v10lift.managers;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import lombok.Getter;
 import tech.sbdevelopment.v10lift.api.objects.Lift;
 import tech.sbdevelopment.v10lift.api.objects.LiftBlock;
@@ -20,7 +21,7 @@ public class DataManager {
     private static final List<UUID> ropeRemoves = new ArrayList<>();
     private static final Map<UUID, String> doorEdits = new HashMap<>();
     private static final List<UUID> whoisReq = new ArrayList<>();
-    private static final Map<String, Integer> movingTasks = new HashMap<>();
+    private static final Map<String, ScheduledTask> movingTasks = new HashMap<>();
 
     /* HashMap methods */
 
@@ -114,7 +115,7 @@ public class DataManager {
     }
 
     // //
-    public static void addMovingTask(String liftName, int taskid) {
+    public static void addMovingTask(String liftName, ScheduledTask taskid) {
         movingTasks.put(liftName, taskid);
     }
 
@@ -126,7 +127,7 @@ public class DataManager {
         return movingTasks.containsKey(liftName);
     }
 
-    public static int getMovingTask(String liftName) {
+    public static ScheduledTask getMovingTask(String liftName) {
         return movingTasks.get(liftName);
     }
 

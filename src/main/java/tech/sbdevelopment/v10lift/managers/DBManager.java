@@ -78,7 +78,7 @@ public class DBManager {
         if (!DataManager.containsLift(liftName)) {
             Bukkit.getLogger().info("[V10Lift] Removing lift " + liftName + " to data...");
 
-            Bukkit.getScheduler().runTaskAsynchronously(V10LiftPlugin.getInstance(), () -> {
+            Bukkit.getGlobalRegionScheduler().run(V10LiftPlugin.getInstance(), (s) -> {
                 try {
                     String query = "DELETE FROM lifts WHERE liftName = ?";
                     PreparedStatement statement = con.prepareStatement(query);
@@ -113,7 +113,7 @@ public class DBManager {
         if (sync) {
             updateLift(liftName, blob);
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(V10LiftPlugin.getInstance(), () -> updateLift(liftName, blob));
+            Bukkit.getGlobalRegionScheduler().run(V10LiftPlugin.getInstance(), (s) -> updateLift(liftName, blob));
         }
     }
 

@@ -369,7 +369,7 @@ public class V10LiftCommand implements CommandExecutor {
             return true;
         }
 
-        Bukkit.getScheduler().cancelTask(DataManager.getMovingTask(liftName));
+        DataManager.getMovingTask(liftName).cancel();
         DataManager.removeMovingTask(liftName);
         ConfigUtil.sendMessage(sender, "Stop.Stopped", Collections.singletonMap("%Name%", liftName));
         return true;
@@ -427,7 +427,7 @@ public class V10LiftCommand implements CommandExecutor {
         for (Map.Entry<String, Lift> e : DataManager.getLifts().entrySet()) {
             String lift = e.getKey();
             if (DataManager.containsMovingTask(lift)) {
-                Bukkit.getScheduler().cancelTask(DataManager.getMovingTask(lift));
+                DataManager.getMovingTask(lift).cancel();
             }
 
             e.getValue().setQueue(null);
